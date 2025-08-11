@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Mail, Lock, User, Phone } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,11 +20,53 @@ const Register = () => {
     avatarFile: null as File | null,
     avatarPreview: null as string | null,
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle registration logic here
-    console.log("Register:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast("Passwords do not match!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Create FormData for file upload
+      const registrationData = new FormData();
+      registrationData.append('fullName', formData.fullName);
+      registrationData.append('email', formData.email);
+      registrationData.append('password', formData.password);
+      registrationData.append('phone', formData.phone);
+      registrationData.append('role', formData.role || 'user');
+      
+      if (formData.avatarFile) {
+        registrationData.append('avatar', formData.avatarFile);
+      }
+
+      // API call to Node.js backend for registration
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        body: registrationData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast("Registration successful! Please verify your email.");
+        // Navigate to OTP verification with email as target
+        navigate(`/verify-otp?target=${encodeURIComponent(formData.email)}`);
+      } else {
+        toast(data.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 const handleInputChange = (field: string, value: string) => {
@@ -176,8 +219,8 @@ return (
             </CardContent>
             
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" variant="hero">
-                Create Account
+              <Button type="submit" className="w-full" variant="hero" disabled={isLoading}>
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
               
               <div className="text-center text-sm">

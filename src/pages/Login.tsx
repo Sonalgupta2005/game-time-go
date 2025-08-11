@@ -1,19 +1,50 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mail, Lock } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login:", { email, password });
+    setIsLoading(true);
+
+    try {
+      // API call to Node.js backend for login
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store auth token
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        
+        toast("Login successful!");
+        navigate('/dashboard');
+      } else {
+        toast(data.message || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,8 +110,8 @@ const Login = () => {
             </CardContent>
             
             <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" variant="hero">
-                Sign In
+              <Button type="submit" className="w-full" variant="hero" disabled={isLoading}>
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
               
               <div className="text-center text-sm">

@@ -51,18 +51,42 @@ const Booking = () => {
   const totalPrice = selectedCourtData ? selectedCourtData.pricePerHour * parseInt(duration) : 0;
 
   const handleBooking = async () => {
-    if (!selectedDate || !selectedCourt || !selectedTimeSlot) {
-      return;
-    }
+    if (!selectedDate || !selectedCourt || !selectedTimeSlot) return;
 
     setIsBooking(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Redirect to success page or show success message
-    alert("Booking confirmed! Redirecting to your bookings...");
-    navigate("/profile");
+    try {
+      // API call to Node.js backend for booking
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({
+          venueId,
+          courtId: selectedCourt,
+          date: selectedDate.toISOString().split('T')[0],
+          timeSlot: selectedTimeSlot,
+          duration: parseInt(duration),
+          totalPrice: totalPrice,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast("Booking confirmed successfully!");
+        navigate("/profile");
+      } else {
+        toast(data.message || "Booking failed. Please try again.");
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast("Network error. Please try again.");
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   const canBook = selectedDate && selectedCourt && selectedTimeSlot && !isBooking;

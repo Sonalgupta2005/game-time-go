@@ -72,15 +72,53 @@ const Profile = () => {
     phone: userData.phone
   });
 
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving profile:", formData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      // API call to Node.js backend to update profile
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast("Profile updated successfully!");
+        setIsEditing(false);
+      } else {
+        toast(data.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      toast("Network error. Please try again.");
+    }
   };
 
-  const handleCancel = (bookingId: number) => {
-    // Handle booking cancellation
-    console.log("Cancelling booking:", bookingId);
+  const handleCancel = async (bookingId: number) => {
+    try {
+      // API call to Node.js backend to cancel booking
+      const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast("Booking cancelled successfully!");
+      } else {
+        toast(data.message || "Failed to cancel booking");
+      }
+    } catch (error) {
+      console.error('Cancel booking error:', error);
+      toast("Network error. Please try again.");
+    }
   };
 
   const getStatusBadge = (status: string) => {

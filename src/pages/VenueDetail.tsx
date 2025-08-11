@@ -1,55 +1,100 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Star, Clock, Wifi, Car, Coffee, Shield, Users, Calendar } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
-// Mock venue data
-const venueDetails = {
-  id: 1,
-  name: "Elite Sports Complex",
-  description: "Premium sports facility with world-class amenities and professional courts. Perfect for tournaments, training, and casual play.",
-  address: "123 Sports Avenue, Downtown, City Center, 110001",
-  sports: ["Badminton", "Tennis", "Basketball", "Table Tennis"],
-  pricePerHour: 25,
-  rating: 4.8,
-  reviews: 156,
-  images: ["/api/placeholder/800/400", "/api/placeholder/400/300", "/api/placeholder/400/300"],
-  amenities: [
-    { name: "Free WiFi", icon: Wifi },
-    { name: "Parking", icon: Car },
-    { name: "Cafeteria", icon: Coffee },
-    { name: "Security", icon: Shield },
-    { name: "Changing Rooms", icon: Users },
-  ],
-  courts: [
-    { id: 1, name: "Court 1", sport: "Badminton", pricePerHour: 25 },
-    { id: 2, name: "Court 2", sport: "Badminton", pricePerHour: 25 },
-    { id: 3, name: "Tennis Court A", sport: "Tennis", pricePerHour: 40 },
-    { id: 4, name: "Basketball Court", sport: "Basketball", pricePerHour: 60 },
-  ],
-  reviewsData: [
-    {
-      id: 1,
-      user: "John Doe",
-      rating: 5,
-      comment: "Excellent facilities and very well maintained courts. Staff is friendly and helpful.",
-      date: "2024-01-15"
-    },
-    {
-      id: 2,
-      user: "Sarah Smith", 
-      rating: 4,
-      comment: "Great venue for badminton. Booking process was smooth and courts are in good condition.",
-      date: "2024-01-10"
-    }
-  ]
-};
+interface VenueDetail {
+  id: number;
+  name: string;
+  description: string;
+  address: string;
+  sports: string[];
+  pricePerHour: number;
+  rating: number;
+  reviews: number;
+  images: string[];
+  amenities: Array<{ name: string; icon: any }>;
+  courts: Array<{ id: number; name: string; sport: string; pricePerHour: number }>;
+  reviewsData: Array<{ id: number; user: string; rating: number; comment: string; date: string }>;
+  phone?: string;
+  email?: string;
+  operatingHours?: string;
+}
 
 const VenueDetail = () => {
   const { id } = useParams();
+  const [venueDetails, setVenueDetails] = useState<VenueDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch venue details from API
+  useEffect(() => {
+    const fetchVenueDetails = async () => {
+      if (!id) return;
+      
+      try {
+        setIsLoading(true);
+        
+        // API call to Node.js backend to get venue details
+        const response = await fetch(`/api/venues/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setVenueDetails(data.venue);
+        } else {
+          const error = await response.json();
+          toast(error.message || "Failed to load venue details");
+        }
+      } catch (error) {
+        console.error('Fetch venue details error:', error);
+        toast("Network error. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVenueDetails();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⏳</div>
+            <h3 className="text-xl font-semibold mb-2">Loading venue details...</h3>
+            <p className="text-muted-foreground">Please wait while we fetch the venue information</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!venueDetails) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-8">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🚫</div>
+            <h3 className="text-xl font-semibold mb-2">Venue not found</h3>
+            <p className="text-muted-foreground">The venue you're looking for doesn't exist</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -229,15 +274,15 @@ const VenueDetail = () => {
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Phone</h4>
-                  <p className="text-sm text-muted-foreground">+91 9876543210</p>
+                  <p className="text-sm text-muted-foreground">{venueDetails.phone || "Contact venue for phone number"}</p>
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Email</h4>
-                  <p className="text-sm text-muted-foreground">info@elitesports.com</p>
+                  <p className="text-sm text-muted-foreground">{venueDetails.email || "Contact venue for email"}</p>
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Operating Hours</h4>
-                  <p className="text-sm text-muted-foreground">6:00 AM - 11:00 PM</p>
+                  <p className="text-sm text-muted-foreground">{venueDetails.operatingHours || "6:00 AM - 11:00 PM"}</p>
                 </div>
               </CardContent>
             </Card>

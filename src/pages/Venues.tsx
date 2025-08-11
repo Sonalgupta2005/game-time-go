@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -7,57 +7,60 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin, Star, Clock, Filter } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
-// Mock data for venues
-const mockVenues = [
-  {
-    id: 1,
-    name: "Elite Sports Complex",
-    sports: ["Badminton", "Tennis", "Basketball"],
-    location: "Downtown, City Center",
-    pricePerHour: 25,
-    rating: 4.8,
-    image: "/api/placeholder/300/200",
-    amenities: ["Parking", "Changing Room", "Water"],
-  },
-  {
-    id: 2,
-    name: "Prime Court Arena",
-    sports: ["Football", "Cricket"],
-    location: "North Zone, Stadium Road",
-    pricePerHour: 40,
-    rating: 4.6,
-    image: "/api/placeholder/300/200",
-    amenities: ["Parking", "Cafeteria", "Equipment"],
-  },
-  {
-    id: 3,
-    name: "SportZone Central",
-    sports: ["Badminton", "Table Tennis"],
-    location: "Central Mall, 2nd Floor",
-    pricePerHour: 20,
-    rating: 4.5,
-    image: "/api/placeholder/300/200",
-    amenities: ["AC", "Parking", "Lockers"],
-  },
-  {
-    id: 4,
-    name: "Champions Arena",
-    sports: ["Tennis", "Squash"],
-    location: "Sports District, Main Road",
-    pricePerHour: 35,
-    rating: 4.9,
-    image: "/api/placeholder/300/200",
-    amenities: ["Premium", "Coaching", "Equipment"],
-  }
-];
+interface Venue {
+  id: number;
+  name: string;
+  sports: string[];
+  location: string;
+  pricePerHour: number;
+  rating: number;
+  image: string;
+  amenities: string[];
+}
 
 const Venues = () => {
+  const [venues, setVenues] = useState<Venue[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredVenues = mockVenues.filter(venue => {
+  // Fetch venues from API
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        setIsLoading(true);
+        
+        // API call to Node.js backend to get venues
+        const response = await fetch('/api/venues', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setVenues(data.venues || []);
+        } else {
+          const error = await response.json();
+          toast(error.message || "Failed to load venues");
+        }
+      } catch (error) {
+        console.error('Fetch venues error:', error);
+        toast("Network error. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVenues();
+  }, []);
+
+  const filteredVenues = venues.filter(venue => {
     const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          venue.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSport = !selectedSport || selectedSport === "all" || venue.sports.includes(selectedSport);
@@ -134,9 +137,18 @@ const Venues = () => {
           </p>
         </div>
 
-        {/* Venues Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVenues.map((venue) => (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⏳</div>
+            <h3 className="text-xl font-semibold mb-2">Loading venues...</h3>
+            <p className="text-muted-foreground">Please wait while we fetch the latest venues</p>
+          </div>
+        ) : (
+          <>
+            {/* Venues Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredVenues.map((venue) => (
             <Card key={venue.id} className="group hover:shadow-elevated transition-smooth cursor-pointer">
               <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
                 <div className="w-full h-full bg-gradient-card flex items-center justify-center">
@@ -199,9 +211,11 @@ const Venues = () => {
                   </Link>
                 </div>
               </CardContent>
-            </Card>
-          ))}
-        </div>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* No Results */}
         {filteredVenues.length === 0 && (

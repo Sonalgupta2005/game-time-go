@@ -46,17 +46,70 @@ const OtpVerification = () => {
       toast("Please enter the 6-digit code");
       return;
     }
+    
     setIsVerifying(true);
-    await new Promise((res) => setTimeout(res, 1200));
-    toast("OTP verified successfully");
-    navigate("/profile");
+
+    try {
+      // API call to Node.js backend for OTP verification
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          otp, 
+          target: params.get("target") || "email" 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast("OTP verified successfully!");
+        // Store auth token if provided
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userData', JSON.stringify(data.user));
+        }
+        navigate("/profile");
+      } else {
+        toast(data.message || "Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast("Network error. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const handleResend = async () => {
     if (seconds > 0) return;
-    setSeconds(30);
-    await new Promise((res) => setTimeout(res, 600));
-    toast("A new OTP has been sent");
+    
+    try {
+      // API call to Node.js backend to resend OTP
+      const response = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          target: params.get("target") || "email" 
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSeconds(30);
+        toast("A new OTP has been sent!");
+      } else {
+        toast(data.message || "Failed to resend OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      toast("Network error. Please try again.");
+    }
   };
 
   return (
