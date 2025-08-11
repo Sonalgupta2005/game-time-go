@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mail, Lock } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
-import { authApi, handleApiSuccess } from "@/services/api";
+import { authApi } from "@/services/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,15 +19,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // API call to Node.js backend for login
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
+      const response = await authApi.login(email, password);
       const data = await response.json();
 
       if (response.ok) {
@@ -40,7 +32,7 @@ const Login = () => {
       } else {
         toast(data.message || "Login failed. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast("Network error. Please try again.");
     } finally {
