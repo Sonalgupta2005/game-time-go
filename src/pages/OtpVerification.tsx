@@ -51,18 +51,7 @@ const OtpVerification = () => {
     setIsVerifying(true);
 
     try {
-      // API call to Node.js backend for OTP verification
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          otp, 
-          target: params.get("target") || "email" 
-        }),
-      });
-
+      const response = await authApi.verifyOTP(params.get("target") || "email", otp);
       const data = await response.json();
 
       if (response.ok) {

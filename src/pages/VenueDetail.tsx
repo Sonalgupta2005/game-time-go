@@ -40,21 +40,13 @@ const VenueDetail = () => {
       try {
         setIsLoading(true);
         
-        // API call to Node.js backend to get venue details
-        const response = await fetch(`/api/venues/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          },
-        });
+        const response = await venuesApi.getById(id);
+        const data = await response.json();
 
         if (response.ok) {
-          const data = await response.json();
           setVenueDetails(data.venue);
         } else {
-          const error = await response.json();
-          toast(error.message || "Failed to load venue details");
+          toast(data.message || "Failed to load venue details");
         }
       } catch (error) {
         console.error('Fetch venue details error:', error);

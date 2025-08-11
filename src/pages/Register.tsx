@@ -47,12 +47,7 @@ const Register = () => {
         registrationData.append('avatar', formData.avatarFile);
       }
 
-      // API call to Node.js backend for registration
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        body: registrationData,
-      });
-
+      const response = await authApi.register(registrationData);
       const data = await response.json();
 
       if (response.ok) {
