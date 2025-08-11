@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Clock, MapPin, CreditCard, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 
@@ -38,6 +39,13 @@ const Booking = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [duration, setDuration] = useState("1");
   const [isBooking, setIsBooking] = useState(false);
+
+  // Time slots pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  const totalPages = Math.ceil(timeSlots.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const displayedTimeSlots = timeSlots.slice(startIndex, startIndex + itemsPerPage);
 
   const selectedCourtData = venueData.courts.find(court => court.id.toString() === selectedCourt);
   const totalPrice = selectedCourtData ? selectedCourtData.pricePerHour * parseInt(duration) : 0;
@@ -149,7 +157,7 @@ const Booking = () => {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Start Time</label>
                   <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                    {timeSlots.map((time) => (
+                    {displayedTimeSlots.map((time) => (
                       <Button
                         key={time}
                         variant={selectedTimeSlot === time ? "default" : "outline"}
@@ -161,6 +169,43 @@ const Booking = () => {
                       </Button>
                     ))}
                   </div>
+
+                  <Pagination className="mt-3">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage((p) => Math.max(1, p - 1));
+                          }}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href="#"
+                            isActive={page === currentPage}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(page);
+                            }}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage((p) => Math.min(totalPages, p + 1));
+                          }}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
 
                 <div>

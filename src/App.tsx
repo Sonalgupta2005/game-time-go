@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import OtpVerification from "./pages/OtpVerification";
 import Venues from "./pages/Venues";
 import VenueDetail from "./pages/VenueDetail";
 import Booking from "./pages/Booking";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-otp" element={<OtpVerification />} />
           <Route path="/venues" element={<Venues />} />
           <Route path="/venue/:id" element={<VenueDetail />} />
           <Route path="/booking/:venueId" element={<Booking />} />

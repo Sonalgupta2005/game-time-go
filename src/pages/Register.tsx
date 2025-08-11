@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Mail, Lock, User, Phone } from "lucide-react";
 
 const Register = () => {
@@ -14,7 +15,9 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     phone: "",
-    role: undefined as string | undefined
+    role: undefined as string | undefined,
+    avatarFile: null as File | null,
+    avatarPreview: null as string | null,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -23,11 +26,26 @@ const Register = () => {
     console.log("Register:", formData);
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+const handleInputChange = (field: string, value: string) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+};
 
-  return (
+const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0] || null;
+  if (!file) return;
+  const preview = URL.createObjectURL(file);
+  setFormData(prev => ({ ...prev, avatarFile: file, avatarPreview: preview }));
+};
+
+const getInitials = () => {
+  if (!formData.fullName) return "QC";
+  const parts = formData.fullName.trim().split(" ");
+  const first = parts[0]?.[0] || "";
+  const last = parts[1]?.[0] || "";
+  return (first + last).toUpperCase() || "U";
+};
+
+return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-accent p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
@@ -50,6 +68,19 @@ const Register = () => {
           
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              <div className="flex flex-col items-center gap-3">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={formData.avatarPreview || undefined} alt="Profile avatar preview" />
+                  <AvatarFallback>{getInitials()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <input id="avatar" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  <label htmlFor="avatar" className="cursor-pointer text-sm font-medium text-primary underline underline-offset-4">
+                    Upload avatar
+                  </label>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <div className="relative">
