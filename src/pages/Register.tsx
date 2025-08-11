@@ -14,7 +14,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     phone: "",
-    role: ""
+    role: undefined as string | undefined
   });
 
   const handleSubmit = (e: React.FormEvent) => {
