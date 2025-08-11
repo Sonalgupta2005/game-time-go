@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,79 +10,79 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, Calendar, Clock, Star, X, Filter } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import { userApi, bookingsApi, handleApiSuccess } from "@/services/api";
 
-// Mock user data
-const userData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "+91 9876543210",
-  avatar: "/api/placeholder/100/100",
-  joinedDate: "January 2024",
-  totalBookings: 25,
-  favoritesSports: ["Badminton", "Tennis"]
-};
-
-// Mock bookings data
-const bookingsData = [
-  {
-    id: 1,
-    venue: "Elite Sports Complex",
-    court: "Court 1",
-    sport: "Badminton",
-    date: "2024-01-20",
-    time: "18:00 - 19:00",
-    status: "confirmed",
-    price: 25
-  },
-  {
-    id: 2,
-    venue: "Prime Court Arena",
-    court: "Tennis Court A",
-    sport: "Tennis",
-    date: "2024-01-22",
-    time: "16:00 - 18:00",
-    status: "confirmed",
-    price: 80
-  },
-  {
-    id: 3,
-    venue: "SportZone Central",
-    court: "Court 3",
-    sport: "Badminton",
-    date: "2024-01-15",
-    time: "19:00 - 20:00",
-    status: "completed",
-    price: 20
-  },
-  {
-    id: 4,
-    venue: "Champions Arena",
-    court: "Squash Court 1",
-    sport: "Squash",
-    date: "2024-01-10",
-    time: "17:00 - 18:00",
-    status: "cancelled",
-    price: 35
-  }
-];
+interface Booking {
+  id: number;
+  venue: string;
+  court: string;
+  sport: string;
+  date: string;
+  time: string;
+  status: 'confirmed' | 'completed' | 'cancelled';
+  price: number;
+  location?: string;
+}
 
 const Profile = () => {
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [formData, setFormData] = useState({
-    name: userData.name,
-    email: userData.email,
-    phone: userData.phone
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || ""
   });
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  // Fetch user bookings from API
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setIsLoadingBookings(true);
+        const response = await bookingsApi.getUserBookings();
+        const data = await response.json();
+
+        if (response.ok) {
+          setBookings(data.bookings || []);
+        } else {
+          toast(data.message || "Failed to load bookings");
+        }
+      } catch (error) {
+        console.error('Fetch bookings error:', error);
+        toast("Network error. Please try again.");
+      } finally {
+        setIsLoadingBookings(false);
+      }
+    };
+
+    if (user) {
+      fetchBookings();
+    }
+  }, [user]);
+
+  // Update form data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || ""
+      });
+    }
+  }, [user]);
+
   const handleSave = async () => {
     try {
-      // API call to Node.js backend to update profile
       const response = await userApi.updateProfile(formData);
       const data = await handleApiSuccess(response);
 
+      // Update user context with new data
+      updateUser(formData);
+      
       toast("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
@@ -93,10 +93,16 @@ const Profile = () => {
 
   const handleCancel = async (bookingId: number) => {
     try {
-      // API call to Node.js backend to cancel booking
       const response = await bookingsApi.cancel(bookingId);
       const data = await handleApiSuccess(response);
 
+      // Update bookings list
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, status: 'cancelled' as const }
+          : booking
+      ));
+      
       toast("Booking cancelled successfully!");
     } catch (error) {
       console.error('Cancel booking error:', error);
@@ -117,16 +123,27 @@ const Profile = () => {
     }
   };
 
-  const upcomingBookings = bookingsData.filter(booking => 
+  const upcomingBookings = bookings.filter(booking => 
     booking.status === 'confirmed' && new Date(booking.date) >= new Date()
   );
   
-  const filteredPastBookings = bookingsData.filter(booking => {
-    const isPast = booking.status === 'completed' || new Date(booking.date) < new Date();
+  const filteredPastBookings = bookings.filter(booking => {
+    const isPast = booking.status === 'completed' || booking.status === 'cancelled' || new Date(booking.date) < new Date();
     const matchesDate = !dateFilter || booking.date.includes(dateFilter);
     const matchesStatus = !statusFilter || statusFilter === "all" || booking.status === statusFilter;
     return isPast && matchesDate && matchesStatus;
   });
+
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  const totalBookings = bookings.length;
+  const sportsPlayed = new Set(bookings.map(b => b.sport)).size;
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,32 +156,32 @@ const Profile = () => {
             <Card>
               <CardHeader className="text-center">
                 <Avatar className="w-20 h-20 mx-auto mb-4">
-                  <AvatarImage src={userData.avatar} alt={userData.name} />
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
                   <AvatarFallback className="text-lg">
-                    {userData.name.split(' ').map(n => n[0]).join('')}
+                    {user?.name ? getUserInitials(user.name) : 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <CardTitle className="text-xl">{userData.name}</CardTitle>
+                <CardTitle className="text-xl">{user?.name}</CardTitle>
                 <CardDescription>
-                  Member since {userData.joinedDate}
+                  Member since {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-primary">{userData.totalBookings}</div>
+                    <div className="text-2xl font-bold text-primary">{totalBookings}</div>
                     <div className="text-sm text-muted-foreground">Total Bookings</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-primary">{userData.favoritesSports.length}</div>
+                    <div className="text-2xl font-bold text-primary">{sportsPlayed}</div>
                     <div className="text-sm text-muted-foreground">Sports Played</div>
                   </div>
                 </div>
                 
                 <div>
-                  <h4 className="font-medium mb-2">Favorite Sports</h4>
+                  <h4 className="font-medium mb-2">Recent Sports</h4>
                   <div className="flex flex-wrap gap-1">
-                    {userData.favoritesSports.map((sport) => (
+                    {Array.from(new Set(bookings.slice(0, 5).map(b => b.sport))).map((sport) => (
                       <Badge key={sport} variant="secondary" className="text-xs">
                         {sport}
                       </Badge>
@@ -197,12 +214,18 @@ const Profile = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {upcomingBookings.length === 0 ? (
+                    {isLoadingBookings ? (
+                      <div className="text-center py-8">
+                        <div className="text-6xl mb-4">⏳</div>
+                        <h3 className="text-lg font-medium mb-2">Loading bookings...</h3>
+                        <p className="text-muted-foreground">Please wait while we fetch your bookings</p>
+                      </div>
+                    ) : upcomingBookings.length === 0 ? (
                       <div className="text-center py-8">
                         <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No upcoming bookings</h3>
                         <p className="text-muted-foreground mb-4">Book a venue to start playing!</p>
-                        <Button variant="hero">Browse Venues</Button>
+                        <Button variant="hero" onClick={() => window.location.href = '/venues'}>Browse Venues</Button>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -381,9 +404,9 @@ const Profile = () => {
                             onClick={() => {
                               setIsEditing(false);
                               setFormData({
-                                name: userData.name,
-                                email: userData.email,
-                                phone: userData.phone
+                                name: user?.name || "",
+                                email: user?.email || "",
+                                phone: user?.phone || ""
                               });
                             }}
                           >

@@ -28,7 +28,15 @@ const Login = () => {
         localStorage.setItem('userData', JSON.stringify(data.user));
         
         toast("Login successful!");
-        navigate('/dashboard');
+        
+        // Redirect based on user role
+        const roleRedirects = {
+          user: '/profile',
+          facility_owner: '/dashboard',
+          admin: '/admin/dashboard'
+        };
+        
+        navigate(roleRedirects[data.user.role] || '/profile');
       } else {
         toast(data.message || "Login failed. Please try again.");
       }
