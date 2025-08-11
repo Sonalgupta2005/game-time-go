@@ -60,7 +60,7 @@ const Venues = () => {
   const filteredVenues = mockVenues.filter(venue => {
     const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          venue.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSport = !selectedSport || venue.sports.includes(selectedSport);
+    const matchesSport = !selectedSport || selectedSport === "all" || venue.sports.includes(selectedSport);
     return matchesSearch && matchesSport;
   });
 
@@ -95,7 +95,7 @@ const Venues = () => {
                 <SelectValue placeholder="Select Sport" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sports</SelectItem>
+                <SelectItem value="all">All Sports</SelectItem>
                 <SelectItem value="Badminton">Badminton</SelectItem>
                 <SelectItem value="Tennis">Tennis</SelectItem>
                 <SelectItem value="Basketball">Basketball</SelectItem>
@@ -112,7 +112,7 @@ const Venues = () => {
                 <SelectValue placeholder="Price Range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Prices</SelectItem>
+                <SelectItem value="all">All Prices</SelectItem>
                 <SelectItem value="0-25">Under ₹25/hr</SelectItem>
                 <SelectItem value="25-40">₹25-40/hr</SelectItem>
                 <SelectItem value="40+">Above ₹40/hr</SelectItem>
