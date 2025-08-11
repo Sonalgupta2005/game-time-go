@@ -23,8 +23,8 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Store auth token
-        localStorage.setItem('authToken', data.token);
+        // Token is now stored in HTTP-only cookie by the server
+        // Store only user data in localStorage for UI purposes
         localStorage.setItem('userData', JSON.stringify(data.user));
         
         toast("Login successful!");

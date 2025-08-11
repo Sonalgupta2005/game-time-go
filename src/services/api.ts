@@ -1,16 +1,13 @@
 // API service for managing all backend routes and requests
 const API_BASE_URL = '/api';
 
-// Helper function to get auth headers
+// Helper function to get auth headers (cookies will be sent automatically)
 const getAuthHeaders = () => ({
   'Content-Type': 'application/json',
-  'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
 });
 
-// Helper function to get auth headers for FormData
-const getAuthHeadersFormData = () => ({
-  'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-});
+// Helper function to get auth headers for FormData (cookies will be sent automatically)
+const getAuthHeadersFormData = () => ({});
 
 // Auth API endpoints
 export const authApi = {
@@ -18,6 +15,7 @@ export const authApi = {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Include cookies in request
       body: JSON.stringify({ email, password }),
     });
     return response;
@@ -26,6 +24,7 @@ export const authApi = {
   register: async (formData: FormData) => {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
+      credentials: 'include',
       body: formData,
     });
     return response;
@@ -35,6 +34,7 @@ export const authApi = {
     const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, otp }),
     });
     return response;
@@ -44,7 +44,17 @@ export const authApi = {
     const response = await fetch(`${API_BASE_URL}/auth/resend-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email }),
+    });
+    return response;
+  },
+
+  logout: async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
     });
     return response;
   },
@@ -56,6 +66,7 @@ export const venuesApi = {
     const response = await fetch(`${API_BASE_URL}/venues`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -64,6 +75,7 @@ export const venuesApi = {
     const response = await fetch(`${API_BASE_URL}/venues/${venueId}`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -77,6 +89,7 @@ export const venuesApi = {
     const response = await fetch(`${API_BASE_URL}/venues/search?${searchParams}`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -95,6 +108,7 @@ export const bookingsApi = {
     const response = await fetch(`${API_BASE_URL}/bookings`, {
       method: 'POST',
       headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify(bookingData),
     });
     return response;
@@ -104,6 +118,7 @@ export const bookingsApi = {
     const response = await fetch(`${API_BASE_URL}/bookings/user`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -112,6 +127,7 @@ export const bookingsApi = {
     const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
       method: 'PUT',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -120,6 +136,7 @@ export const bookingsApi = {
     const response = await fetch(`${API_BASE_URL}/bookings/available-slots?venueId=${venueId}&courtId=${courtId}&date=${date}`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -131,6 +148,7 @@ export const userApi = {
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'GET',
       headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -143,6 +161,7 @@ export const userApi = {
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: getAuthHeaders(),
+      credentials: 'include',
       body: JSON.stringify(profileData),
     });
     return response;
@@ -155,6 +174,7 @@ export const userApi = {
     const response = await fetch(`${API_BASE_URL}/user/avatar`, {
       method: 'POST',
       headers: getAuthHeadersFormData(),
+      credentials: 'include',
       body: formData,
     });
     return response;
