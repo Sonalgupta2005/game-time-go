@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, MapPin, Star, Clock, Filter } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { venuesApi, handleApiSuccess } from "@/services/api";
@@ -19,6 +20,7 @@ interface Venue {
   rating: number;
   image: string;
   amenities: string[];
+  type: string;
 }
 
 const Venues = () => {
@@ -26,7 +28,10 @@ const Venues = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSport, setSelectedSport] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
+  const [venueTypeFilter, setVenueTypeFilter] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   // Fetch venues from API
   useEffect(() => {
@@ -57,7 +62,16 @@ const Venues = () => {
     const matchesSearch = venue.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          venue.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSport = !selectedSport || selectedSport === "all" || venue.sports.includes(selectedSport);
-    return matchesSearch && matchesSport;
+    const matchesPrice = !priceFilter || priceFilter === "all" || 
+                        (priceFilter === "0-25" && venue.pricePerHour <= 25) ||
+                        (priceFilter === "25-40" && venue.pricePerHour > 25 && venue.pricePerHour <= 40) ||
+                        (priceFilter === "40+" && venue.pricePerHour > 40);
+    const matchesType = !venueTypeFilter || venueTypeFilter === "all" || venue.type === venueTypeFilter;
+    const matchesRating = !ratingFilter || ratingFilter === "all" ||
+                         (ratingFilter === "4+" && venue.rating >= 4) ||
+                         (ratingFilter === "3+" && venue.rating >= 3);
+    
+    return matchesSearch && matchesSport && matchesPrice && matchesType && matchesRating;
   });
 
   return (
@@ -115,11 +129,66 @@ const Venues = () => {
               </SelectContent>
             </Select>
 
-            {/* Filter Button */}
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              More Filters
-            </Button>
+            {/* More Filters Dialog */}
+            <Dialog open={showMoreFilters} onOpenChange={setShowMoreFilters}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  More Filters
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Additional Filters</DialogTitle>
+                  <DialogDescription>
+                    Refine your search with more specific criteria
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Venue Type</label>
+                    <Select value={venueTypeFilter} onValueChange={setVenueTypeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select venue type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="indoor">Indoor</SelectItem>
+                        <SelectItem value="outdoor">Outdoor</SelectItem>
+                        <SelectItem value="mixed">Mixed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Minimum Rating</label>
+                    <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select minimum rating" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Ratings</SelectItem>
+                        <SelectItem value="4+">4+ Stars</SelectItem>
+                        <SelectItem value="3+">3+ Stars</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setVenueTypeFilter("");
+                      setRatingFilter("");
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                  <Button onClick={() => setShowMoreFilters(false)}>
+                    Apply Filters
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -222,6 +291,8 @@ const Venues = () => {
                 setSearchTerm("");
                 setSelectedSport("");
                 setPriceFilter("");
+                setVenueTypeFilter("");
+                setRatingFilter("");
               }}
             >
               Clear Filters

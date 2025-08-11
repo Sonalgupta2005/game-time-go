@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Mail, Phone, MapPin, Calendar, Clock, Star, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Mail, Phone, MapPin, Calendar, Clock, Star, X, Filter } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { userApi, bookingsApi, handleApiSuccess } from "@/services/api";
 
@@ -73,6 +74,8 @@ const Profile = () => {
     email: userData.email,
     phone: userData.phone
   });
+  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const handleSave = async () => {
     try {
@@ -118,9 +121,12 @@ const Profile = () => {
     booking.status === 'confirmed' && new Date(booking.date) >= new Date()
   );
   
-  const pastBookings = bookingsData.filter(booking => 
-    booking.status === 'completed' || new Date(booking.date) < new Date()
-  );
+  const filteredPastBookings = bookingsData.filter(booking => {
+    const isPast = booking.status === 'completed' || new Date(booking.date) < new Date();
+    const matchesDate = !dateFilter || booking.date.includes(dateFilter);
+    const matchesStatus = !statusFilter || statusFilter === "all" || booking.status === statusFilter;
+    return isPast && matchesDate && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,14 +245,40 @@ const Profile = () => {
                 {/* Past Bookings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Booking History</CardTitle>
-                    <CardDescription>
-                      Your past and cancelled bookings
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Booking History</CardTitle>
+                        <CardDescription>
+                          Your past and cancelled bookings
+                        </CardDescription>
+                      </div>
+                      <div className="flex gap-2">
+                        <Select value={dateFilter} onValueChange={setDateFilter}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Filter by date" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Dates</SelectItem>
+                            <SelectItem value="2024-01">January 2024</SelectItem>
+                            <SelectItem value="2023-12">December 2023</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Filter by status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {pastBookings.map((booking) => (
+                      {filteredPastBookings.map((booking) => (
                         <div key={booking.id} className="p-4 border rounded-lg opacity-75">
                           <div className="flex items-start justify-between">
                             <div className="space-y-2">

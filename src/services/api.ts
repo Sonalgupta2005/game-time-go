@@ -181,6 +181,194 @@ export const userApi = {
   },
 };
 
+// Reviews API endpoints
+export const reviewsApi = {
+  create: async (reviewData: {
+    venueId: number;
+    rating: number;
+    comment: string;
+  }) => {
+    const response = await fetch(`${API_BASE_URL}/reviews`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(reviewData),
+    });
+    return response;
+  },
+
+  getByVenue: async (venueId: string) => {
+    const response = await fetch(`${API_BASE_URL}/reviews/venue/${venueId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+};
+
+// Admin API endpoints
+export const adminApi = {
+  login: async (adminId: string, password: string) => {
+    const response = await fetch(`${API_BASE_URL}/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ adminId, password }),
+    });
+    return response;
+  },
+
+  getStats: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  getPendingFacilities: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/facilities/pending`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  approveFacility: async (facilityId: number, comments?: string) => {
+    const response = await fetch(`${API_BASE_URL}/admin/facilities/${facilityId}/approve`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ comments }),
+    });
+    return response;
+  },
+
+  rejectFacility: async (facilityId: number, comments?: string) => {
+    const response = await fetch(`${API_BASE_URL}/admin/facilities/${facilityId}/reject`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ comments }),
+    });
+    return response;
+  },
+
+  getAllUsers: async () => {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  banUser: async (userId: number) => {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/ban`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  unbanUser: async (userId: number) => {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/unban`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+};
+
+// Facility Management API endpoints
+export const facilityApi = {
+  updateDetails: async (facilityData: {
+    name: string;
+    description: string;
+    location: string;
+    amenities: string[];
+    sports: string[];
+  }) => {
+    const response = await fetch(`${API_BASE_URL}/facility/details`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(facilityData),
+    });
+    return response;
+  },
+
+  uploadPhotos: async (photos: FormData) => {
+    const response = await fetch(`${API_BASE_URL}/facility/photos`, {
+      method: 'POST',
+      headers: getAuthHeadersFormData(),
+      credentials: 'include',
+      body: photos,
+    });
+    return response;
+  },
+
+  addCourt: async (courtData: {
+    name: string;
+    sport: string;
+    pricePerHour: number;
+  }) => {
+    const response = await fetch(`${API_BASE_URL}/facility/courts`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(courtData),
+    });
+    return response;
+  },
+
+  updateCourt: async (courtId: number, courtData: {
+    name: string;
+    sport: string;
+    pricePerHour: number;
+  }) => {
+    const response = await fetch(`${API_BASE_URL}/facility/courts/${courtId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(courtData),
+    });
+    return response;
+  },
+
+  deleteCourt: async (courtId: number) => {
+    const response = await fetch(`${API_BASE_URL}/facility/courts/${courtId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  acceptBooking: async (bookingId: number) => {
+    const response = await fetch(`${API_BASE_URL}/facility/bookings/${bookingId}/accept`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+
+  rejectBooking: async (bookingId: number) => {
+    const response = await fetch(`${API_BASE_URL}/facility/bookings/${bookingId}/reject`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      credentials: 'include',
+    });
+    return response;
+  },
+};
+
 // Error handling helper
 export const handleApiError = async (response: Response) => {
   if (!response.ok) {

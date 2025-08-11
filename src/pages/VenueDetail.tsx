@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Star, Clock, Wifi, Car, Coffee, Shield, Users, Calendar } from "lucide-react";
+import ReviewForm from "@/components/ReviewForm";
 import { toast } from "@/components/ui/sonner";
 import { venuesApi, handleApiSuccess } from "@/services/api";
 
@@ -31,6 +32,7 @@ const VenueDetail = () => {
   const { id } = useParams();
   const [venueDetails, setVenueDetails] = useState<VenueDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   // Fetch venue details from API
   useEffect(() => {
@@ -205,7 +207,28 @@ const VenueDetail = () => {
 
             {/* Reviews */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Reviews</h2>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                >
+                  Write Review
+                </Button>
+              </div>
+              
+              {showReviewForm && (
+                <div className="mb-6">
+                  <ReviewForm 
+                    venueId={venueDetails.id} 
+                    onReviewSubmitted={() => {
+                      setShowReviewForm(false);
+                      // Refresh venue details to show new review
+                    }}
+                  />
+                </div>
+              )}
+              
               <div className="space-y-4">
                 {venueDetails.reviewsData.map((review) => (
                   <Card key={review.id}>

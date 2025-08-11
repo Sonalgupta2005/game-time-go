@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import EditFacilityDialog from "@/components/EditFacilityDialog";
+import PhotoUpload from "@/components/PhotoUpload";
+import CourtManagement from "@/components/CourtManagement";
+import { toast } from "@/components/ui/sonner";
+import { facilityApi, handleApiSuccess } from "@/services/api";
 import { 
   BarChart, 
   Calendar, 
@@ -75,6 +80,32 @@ const courtsData = [
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+
+  const handleAcceptBooking = async (bookingId: number) => {
+    try {
+      const response = await facilityApi.acceptBooking(bookingId);
+      const data = await handleApiSuccess(response);
+      
+      toast("Booking accepted successfully!");
+      // Refresh bookings data
+    } catch (error) {
+      console.error('Accept booking error:', error);
+      toast(error instanceof Error ? error.message : "Failed to accept booking");
+    }
+  };
+
+  const handleRejectBooking = async (bookingId: number) => {
+    try {
+      const response = await facilityApi.rejectBooking(bookingId);
+      const data = await handleApiSuccess(response);
+      
+      toast("Booking rejected successfully!");
+      // Refresh bookings data
+    } catch (error) {
+      console.error('Reject booking error:', error);
+      toast(error instanceof Error ? error.message : "Failed to reject booking");
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -276,52 +307,30 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <Button variant="outline">Edit Facility Details</Button>
+                <EditFacilityDialog 
+                  facilityData={facilityData}
+                  onSave={() => {
+                    // Refresh facility data
+                    toast("Facility data refreshed");
+                  }}
+                />
+                
+                <div className="mt-6">
+                  <PhotoUpload />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Courts Management Tab */}
           <TabsContent value="courts">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Court Management</CardTitle>
-                    <CardDescription>Manage your courts and pricing</CardDescription>
-                  </div>
-                  <Button variant="hero" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Court
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {courtsData.map((court) => (
-                    <div key={court.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{court.name}</span>
-                          {getStatusBadge(court.status)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {court.sport} • ₹{court.pricePerHour}/hour
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <CourtManagement 
+              courts={courtsData}
+              onUpdate={() => {
+                // Refresh courts data
+                toast("Courts data refreshed");
+              }}
+            />
           </TabsContent>
 
           {/* Bookings Overview Tab */}
@@ -359,10 +368,20 @@ const Dashboard = () => {
                         </div>
                         {booking.status === 'confirmed' && (
                           <div className="flex gap-1">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleAcceptBooking(booking.id)}
+                              className="text-success hover:text-success"
+                            >
                               <CheckCircle className="h-3 w-3" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleRejectBooking(booking.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
                               <XCircle className="h-3 w-3" />
                             </Button>
                           </div>
