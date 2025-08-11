@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Clock, MapPin, CreditCard, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "@/components/ui/sonner";
 
 // Mock data
 const venueData = {

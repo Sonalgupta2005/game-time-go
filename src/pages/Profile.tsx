@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone, MapPin, Calendar, Clock, Star, X } from "lucide-react";
+import { toast } from "@/components/ui/sonner";
 
 // Mock user data
 const userData = {
