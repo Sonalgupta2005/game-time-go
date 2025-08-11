@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { toast } from "@/components/ui/sonner";
+import { authApi, handleApiSuccess } from "@/services/api";
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState("");
@@ -88,27 +89,14 @@ const OtpVerification = () => {
     
     try {
       // API call to Node.js backend to resend OTP
-      const response = await fetch('/api/auth/resend-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          target: params.get("target") || "email" 
-        }),
-      });
+      const response = await authApi.resendOTP(params.get("target") || "email");
+      const data = await handleApiSuccess(response);
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        setSeconds(30);
-        toast("A new OTP has been sent!");
-      } else {
-        toast(data.message || "Failed to resend OTP. Please try again.");
-      }
+      setSeconds(30);
+      toast("A new OTP has been sent!");
     } catch (error) {
       console.error('Resend OTP error:', error);
-      toast("Network error. Please try again.");
+      toast(error instanceof Error ? error.message : "Failed to resend OTP. Please try again.");
     }
   };
 

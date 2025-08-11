@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, MapPin, Star, Clock, Filter } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { venuesApi, handleApiSuccess } from "@/services/api";
 
 interface Venue {
   id: number;

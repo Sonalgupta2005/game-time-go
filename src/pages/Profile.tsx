@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone, MapPin, Calendar, Clock, Star, X } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { userApi, bookingsApi, handleApiSuccess } from "@/services/api";
 
 // Mock user data
 const userData = {
@@ -76,49 +77,27 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       // API call to Node.js backend to update profile
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await userApi.updateProfile(formData);
+      const data = await handleApiSuccess(response);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast("Profile updated successfully!");
-        setIsEditing(false);
-      } else {
-        toast(data.message || "Failed to update profile");
-      }
+      toast("Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
       console.error('Update profile error:', error);
-      toast("Network error. Please try again.");
+      toast(error instanceof Error ? error.message : "Failed to update profile");
     }
   };
 
   const handleCancel = async (bookingId: number) => {
     try {
       // API call to Node.js backend to cancel booking
-      const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-      });
+      const response = await bookingsApi.cancel(bookingId);
+      const data = await handleApiSuccess(response);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        toast("Booking cancelled successfully!");
-      } else {
-        toast(data.message || "Failed to cancel booking");
-      }
+      toast("Booking cancelled successfully!");
     } catch (error) {
       console.error('Cancel booking error:', error);
-      toast("Network error. Please try again.");
+      toast(error instanceof Error ? error.message : "Failed to cancel booking");
     }
   };
 

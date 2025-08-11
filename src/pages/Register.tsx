@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { authApi, handleApiSuccess } from "@/services/api";
 
 const Register = () => {
   const [formData, setFormData] = useState({

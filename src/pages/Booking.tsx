@@ -11,6 +11,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Clock, MapPin, CreditCard, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/components/ui/sonner";
+import { bookingsApi, handleApiSuccess } from "@/services/api";
 
 // Mock data
 const venueData = {

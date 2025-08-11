@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Star, Clock, Wifi, Car, Coffee, Shield, Users, Calendar } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { venuesApi, handleApiSuccess } from "@/services/api";
 
 interface VenueDetail {
   id: number;
